@@ -1,0 +1,137 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+# ── Buscar el archivo automáticamente ───────────────────────────────
+posibles_rutas = [
+    "simulacion.txt",
+    "build/debug/simulacion.txt",
+    "debug/simulacion.txt",
+    "../simulacion.txt",
+]
+
+ruta = None
+for r in posibles_rutas:
+    if os.path.exists(r):
+        ruta = r
+        break
+
+if ruta is None:
+    print("ERROR: No se encontró simulacion.txt")
+    print("Coloca graficar.py en la misma carpeta que simulacion.txt")
+    exit()
+
+print(f"Archivo encontrado en: {ruta}")
+
+# ── Leer datos ignorando comentarios y líneas [COL] ─────────────────
+filas = []
+with open(ruta, "r") as f:
+    for linea in f:
+        linea = linea.strip()
+        if linea.startswith("#") or linea.startswith("[") or linea == "":
+            continue
+        partes = linea.split()
+        if len(partes) == 9:
+            filas.append(partes)
+
+if len(filas) == 0:
+    print("ERROR: El archivo está vacío o no tiene datos válidos")
+    exit()
+
+columnas = ["t", "id", "px", "py", "vx", "vy", "masa", "radio", "Ek"]
+datos = pd.DataFrame(filas, columns=columnas)
+datos = datos.astype({
+    "t": float, "id": int, "px": float, "py": float,
+    "vx": float, "vy": float, "masa": float, "radio": float, "Ek": float
+})
+
+print(f"Datos cargados: {len(datos)} filas, {datos['id'].nunique()} partículas")
+
+# ── Crear figura con 3 gráficas ──────────────────────────────────────
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+fig.suptitle("Simulación de Colisiones — Informática II",
+             fontsize=14, fontweight="bold")
+
+ids     = sorted(datos["id"].unique())
+colores = ["red", "blue", "green", "gold", "purple", "cyan"]
+
+# ── Gráfica 1: Trayectorias x vs y ──────────────────────────────────
+ax1 = axes[0]
+ax1.set_title("Trayectorias de partículas")
+ax1.set_xlabel("Posición X (px)")
+ax1.set_ylabel("Posición Y (px)")
+ax1.set_xlim(0, 600)
+ax1.set_ylim(500, 0)  # invertido para coincidir con Qt
+ax1.set_facecolor("#f9f9f9")
+
+for i, pid in enumerate(ids):
+    d = datos[datos["id"] == pid]
+    ax1.plot(d["px"], d["py"],
+             color=colores[i % len(colores)],
+             label=f"Partícula {pid}",
+             linewidth=1.2, alpha=0.85)
+    # Marcar posición inicial
+    ax1.scatter(d["px"].iloc[0], d["py"].iloc[0],
+                color=colores[i % len(colores)], s=60, zorder=5)
+
+ax1.legend(loc="upper right", fontsize=8)
+ax1.grid(True, alpha=0.3)
+
+# Dibujar caja y obstáculos
+ax1.add_patch(plt.Rectangle((0, 0), 600, 500,
+              fill=False, edgecolor="black", linewidth=2))
+ax1.add_patch(plt.Rectangle((220, 220), 60, 60,
+              fill=True, facecolor="#cccccc", edgecolor="gray", linewidth=1))
+ax1.add_patch(plt.Rectangle((395, 320), 50, 80,
+              fill=True, facecolor="#cccccc", edgecolor="gray", linewidth=1))
+
+# ── Gráfica 2: Energía cinética total vs tiempo ──────────────────────
+ax2 = axes[1]
+ax2.set_title("Energía cinética total vs tiempo")
+ax2.set_xlabel("Tiempo (s)")
+ax2.set_ylabel("Ek total (unidades)")
+ax2.set_facecolor("#f9f9f9")
+
+Ek_total = datos.groupby("t")["Ek"].sum()
+ax2.plot(Ek_total.index, Ek_total.values,
+         color="darkorange", linewidth=1.5, label="Ek total")
+ax2.fill_between(Ek_total.index, Ek_total.values,
+                 alpha=0.15, color="darkorange")
+ax2.legend(fontsize=8)
+ax2.grid(True, alpha=0.3)
+
+# Marcar caídas de energía (fusiones)
+umbral = Ek_total.diff().min() * 0.8
+caidas = Ek_total[Ek_total.diff() < umbral]
+for t_caida in caidas.index:
+    ax2.axvline(x=t_caida, color="red",
+                linewidth=1, linestyle="--", alpha=0.6)
+if len(caidas) > 0:
+    ax2.text(0.02, 0.95, "— fusión detectada",
+             transform=ax2.transAxes, fontsize=7,
+             color="red", va="top")
+
+# ── Gráfica 3: Velocidad vs tiempo ──────────────────────────────────
+ax3 = axes[2]
+ax3.set_title("Módulo de velocidad vs tiempo")
+ax3.set_xlabel("Tiempo (s)")
+ax3.set_ylabel("|v| (px/s)")
+ax3.set_facecolor("#f9f9f9")
+
+datos["v"] = (datos["vx"]**2 + datos["vy"]**2)**0.5
+
+for i, pid in enumerate(ids):
+    d = datos[datos["id"] == pid]
+    ax3.plot(d["t"], d["v"],
+             color=colores[i % len(colores)],
+             label=f"P{pid}",
+             linewidth=1.1, alpha=0.85)
+
+ax3.legend(loc="upper right", fontsize=8)
+ax3.grid(True, alpha=0.3)
+
+# ── Guardar y mostrar ────────────────────────────────────────────────
+plt.tight_layout()
+plt.savefig("graficas_simulacion.png", dpi=150, bbox_inches="tight")
+plt.show()
+print("Gráfica guardada como graficas_simulacion.png")
