@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui->setupUi(this);
     escena->inicializar();
 
-    // Crear el QGraphicsView manualmente — sin depender del .ui
+
     QGraphicsView* view = new QGraphicsView(scene, this);
     view->setGeometry(10, 10, 620, 520);
     view->setRenderHint(QPainter::Antialiasing);
@@ -36,22 +36,22 @@ void MainWindow::tick() {
 void MainWindow::dibujarEstado() {
     scene->clear();
 
-    // Fondo blanco
+
     scene->setBackgroundBrush(Qt::white);
 
-    // Borde de la caja
+
     scene->addRect(0, 0, 600, 500,
                    QPen(Qt::black, 2),
                    QBrush(Qt::NoBrush));
 
-    // Dibujar obstáculos en gris
+
     for (const auto& obs : escena->getObstaculos()) {
         scene->addRect(obs.getBounds(),
                        QPen(Qt::darkGray, 2),
                        QBrush(Qt::lightGray));
     }
 
-    // Dibujar partículas activas
+
     for (const auto& p : escena->getParticulas()) {
         if (!p.estaActiva()) continue;
         double r = p.getRadio();

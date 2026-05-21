@@ -53,7 +53,7 @@ void EscenaJuego::paso(double dt) {
     // 4. Colisiones entre partículas (completamente inelástica)
     detector.chequearParticulas(particulas);
 
-    // 5. Guardar estado cada frame
+
     salida.escribirEstado(tiempoTotal, particulas);
 }
 
