@@ -14,12 +14,16 @@ void Particula::actualizar(double dt) {
 void Particula::rebotarPared(LadoPared lado) {
     switch (lado) {
     case LadoPared::IZQUIERDA:
+        vel.x =  std::abs(vel.x);   // forzar dirección derecha
+        break;
     case LadoPared::DERECHA:
-        vel.x = -vel.x;
+        vel.x = -std::abs(vel.x);   // forzar dirección izquierda
         break;
     case LadoPared::ARRIBA:
+        vel.y =  std::abs(vel.y);   // forzar dirección abajo (y crece hacia abajo)
+        break;
     case LadoPared::ABAJO:
-        vel.y = -vel.y;
+        vel.y = -std::abs(vel.y);   // forzar dirección arriba
         break;
     }
 }
@@ -27,12 +31,16 @@ void Particula::rebotarPared(LadoPared lado) {
 void Particula::rebotarObstaculo(double e, LadoObst lado) {
     switch (lado) {
     case LadoObst::NORTE:
+        vel.y = -e * std::abs(vel.y);   // rebota hacia arriba (v_y < 0)
+        break;
     case LadoObst::SUR:
-        vel.y = -e * vel.y;
+        vel.y =  e * std::abs(vel.y);   // rebota hacia abajo  (v_y > 0)
         break;
     case LadoObst::ESTE:
+        vel.x =  e * std::abs(vel.x);   // rebota hacia la derecha (v_x > 0)
+        break;
     case LadoObst::OESTE:
-        vel.x = -e * vel.x;
+        vel.x = -e * std::abs(vel.x);   // rebota hacia la izquierda (v_x < 0)
         break;
     }
 }

@@ -18,14 +18,17 @@ bool Obstaculo::colisionaCon(Vector2D p, double radio) const {
 }
 
 LadoObst Obstaculo::ladoImpacto(Vector2D p) const {
-    double dN = std::abs(p.y - (pos.y - alto  / 2));
-    double dS = std::abs(p.y - (pos.y + alto  / 2));
-    double dE = std::abs(p.x - (pos.x + ancho / 2));
-    double dO = std::abs(p.x - (pos.x - ancho / 2));
+    // Distancia con signo positivo = partícula está fuera de ese lado.
+    // Cuando está dentro (penetración), el valor menos negativo indica
+    // el lado con menor profundidad de penetración → lado correcto.
+    double dN = (pos.y - alto  / 2) - p.y;
+    double dS = p.y - (pos.y + alto  / 2);
+    double dE = p.x - (pos.x + ancho / 2);
+    double dO = (pos.x - ancho / 2) - p.x;
 
-    double minD = std::min({dN, dS, dE, dO});
-    if (minD == dN) return LadoObst::NORTE;
-    if (minD == dS) return LadoObst::SUR;
-    if (minD == dE) return LadoObst::ESTE;
+    double maxD = std::max({dN, dS, dE, dO});
+    if (maxD == dN) return LadoObst::NORTE;
+    if (maxD == dS) return LadoObst::SUR;
+    if (maxD == dE) return LadoObst::ESTE;
     return LadoObst::OESTE;
 }

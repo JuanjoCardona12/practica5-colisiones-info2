@@ -68,6 +68,8 @@ void DetectorColisiones::chequearParticulas(std::vector<Particula>& ps) {
 
                 emit colisionDetectada("FUSION",
                                        ps[i].getId(), ps[j].getId(), 0);
+
+                if (!ps[i].estaActiva()) break; // ps[i] fue absorbida, salir del loop interno
             }
         }
     }
