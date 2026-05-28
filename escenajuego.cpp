@@ -27,7 +27,8 @@ void EscenaJuego::inicializar() {
     // 2 obstáculos estáticos
     obstaculos.emplace_back(10, Vector2D(250, 250), 60, 60, 0.6);
     obstaculos.emplace_back(11, Vector2D(420, 360), 50, 80, 0.5);
-
+    obstaculos.emplace_back(12, Vector2D(100, 350), 60, 60, 0.7);
+    obstaculos.emplace_back(13, Vector2D(430, 120), 55, 55, 0.6);
     tiempoTotal   = 0.0;
     numColisiones = 0;
     salida.escribirCabecera();
